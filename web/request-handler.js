@@ -19,7 +19,7 @@ exports.handleRequest = function (req, res) {
 var actions = {
   'GET': function(req, res) {
     if (req.url === '/') { // serve index
-      res.end('/<input/');
+      fs.createReadStream(path.join(__dirname, '../index.html')).pipe(res);
     } else if (req.url === '/www.google.com') { // serve existent file
       res.end('/google/');
     } else { // 404 when non-existent
