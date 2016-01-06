@@ -3,42 +3,55 @@
   <head>
     <meta charset="utf-8">
     <title>Archive Machine</title>
-    <!-- <link rel="stylesheet" href="./client/client/styles/styles.css"> -->
-    <!-- dependencies -->
-    <!-- // <script src="./client/client/bower_components/jquery/dist/jquery.js"></script> -->
-    <!-- // <script src="./client/client/bower_components/underscore/underscore.js"></script> -->
-    <!-- // <script src="./client/client/bower_components/backbone/backbone.js"></script> -->
-    <!-- your scripts -->
-    <!-- // <script src="./client/client/scripts/refactor.js"></script> -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
   </head>
   <body>
     <div id="main">
       <h1>Internet Archive</h1>
-      <!-- <div class="spinner"><img src="./client/client/images/spiffygif_46x46.gif"></div> -->
-      <form action="#" id="send" method="post">
-        <input type="text" name="message" id="message"/>
-        <input type="submit" name="submit" class="submit"/>
+      <form action="get" id="send" method="post">
+        <input type="text" name="url" id="url"/>
       </form>
     </div>
-    <!-- // <script>
+    <div id="container">
+    </div>
+    <script>
       $(function(){
-        // change this to false to run the jQuery version
-        var runBackboneSolution = true;
+        var app = {
+          server: 'http://127.0.0.1:8080',
 
-        if (runBackboneSolution) {
-          // Backbone-based app initialization
-          console.log('Running Backbone Version...');
-          var messages     = new Messages();
-          var formView     = new FormView(    {el: $('#main'),  collection: messages})
-          var messagesView = new MessagesView({el: $('#chats'), collection: messages});
-          setInterval(messages.loadMsgs.bind(messages), 1000);
-          messages.loadMsgs();
-        } else {
-          // jQuery-based app initialization
-          console.log('Running jQuery Version...');
-          app.init();
-        }
+          init: function() {
+            app.$container = $('#container');
+            app.$send = $('#send');
+            app.$url = $('#url');
+
+            app.$url.on('keypress', function(e){
+              if(e.keyCode === 13){
+                app.fetch(app.$url.val());
+                app.$url.val('');
+                e.preventDefault();
+              } 
+            });
+          },
+
+          fetch: function(url) {
+            $.ajax({
+              type: 'POST',
+              url: app.server,
+              contentType: 'text/html',
+              data: url,
+              success: function(data) {
+                console.log('success');
+                app.$container.html(data);
+              },
+              error: function(data) {
+                // app.$container.html(data.responseText);
+                console.error('Archive: Failed to fetch website');
+              }
+            });
+          }
+        };
+        app.init();
       });
-    </script> -->
+    </script>
   </body>
 </html>

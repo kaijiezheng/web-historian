@@ -2,65 +2,84 @@ var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var fs = require('fs');
 
+var headers = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type, accept",
+  "access-control-max-age": 10, // Seconds.
+  'Content-Type': "text/html"
+};
+
 exports.handleRequest = function (req, res) {
   var action = actions[req.method];
 
   if (action) {
     action(req, res);
+  } else {
+    // 404
+    res.writeHead(404);
+    res.end();
   }
-
-  // post of type form
-  // sending url
-  // statusCode 302
-
 };
+
+
+
 
 
 var actions = {
   'GET': function(req, res) {
-    if (req.url === '/') { // serve index
+    console.log('GET');
+    if (req.url === '/'){
       fs.createReadStream(path.join(__dirname, '../index.html')).pipe(res);
-    } else if (req.url === '/www.google.com') { // serve existent file
+    } else if (req.url === "/www.google.com") {
       res.end('/google/');
-    } else { // 404 when non-existent
+    } else {
       res.writeHead(404);
       res.end();
     }
-    //
   },
   'POST': function(req, res) {
-    //
-    var data = '';
-    req.on('data', function(chunk) {
-      //
+    console.log('POST');
+
+    var data = "";
+    req.on('data', function(chunk){
       data += chunk;
     });
 
-    req.on('end', function() {
-      // write data to sites.txt, 'url=www....'
-      fs.appendFile(path.join(__dirname, '../test/testdata/sites.txt'), data.slice(4) + '\n');
+    req.on('end', function(){
+      var present = false;
+      archive.isUrlInList(data, function(val) {
+        if (val === 1) {
+          console.log('exists');
+          res.writeHead(200);
+          fs.createReadStream(path.join(__dirname, '../archives/sites/' + data)).pipe(res);
+        } else {
+          console.log('does not exist');
+          // archive.addUrlToList(data);
+          // archive.downloadUrls([data]);
+          fs.appendFile(path.join(__dirname, '../archives/queue.txt'), data+"\n");
+          res.writeHead(200);
+          fs.createReadStream(path.join(__dirname, '../loading.html')).pipe(res);
+        }
+      });
 
-      // 302 if found
-      res.writeHead(302);
-      res.end();
+
+      // fs.appendFile(path.join(__dirname, '../test/testdata/sites.txt'), data.slice(4) + '\n');
     });
   },
-  'OPTIONS': function(request, response) {
-    //
+  'OPTIONS': function(req, res) {
+    console.log('OPTIONS');
+    res.writeHead(200, headers);
+    res.end();
   }
-};
+}
 
+// exports.readListOfUrls = function(callback) {
 
-// request
-//           .post("/")
-//           .type('form')
-//           .send({ url: url })
-//           .expect(302, function (err) {
-//             if (!err) {
-//               var fileContents = fs.readFileSync(archive.paths.list, 'utf8');
-//               expect(fileContents).to.equal(url + "\n");
-//             }
+// exports.isUrlInList = function(url, callback) {
 
-//             done(err);
-//           });
-//       });
+// exports.addUrlToList = function(url, callback) {
+
+// exports.isUrlArchived = function(url, callback) {
+
+// exports.downloadUrls = function(urls) {
